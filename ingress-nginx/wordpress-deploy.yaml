@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: wordpress
+  name: wordpress
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wordpress
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - image: richarvey/nginx-php-fpm
+        imagePullPolicy: IfNotPresent
+        name: wordpress
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+            
+        volumeMounts:
+        - name: volume
+          mountPath: /var/www/html
+          subPath: wordpress
+          readOnly: True
+        - name: timezone
+          mountPath: /etc/localtime
+          readOnly: True
+      volumes:
+      - name: timezone
+        hostPath:
+          path: /etc/localtime
+      - name: volume
+        #hostPath:
+        #  path: /data/www/wwwroot
+        persistentVolumeClaim:
+          claimName: pvc-wwwroot
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: wordpress
+spec:
+ #type: NodePort         
+ ports:
+ - port: 80     
+   targetPort: 80     
+ selector:
+   app: wordpress

@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: "wordpress.dukanghub.com"
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: wordpress.dukanghub.com
+    http:
+      paths:
+      - path:
+        backend:
+          serviceName: "wordpress"
+          servicePort: 80
